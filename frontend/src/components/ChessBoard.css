@@ -1,0 +1,42 @@
+.chess-board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.board-wrapper {
+  margin: 15px 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.game-status {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.status-indicator {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.status-indicator.game-over {
+  color: #d32f2f;
+}
+
+.player-color {
+  font-size: 14px;
+  color: #666;
+}
+
+@media (max-width: 600px) {
+  .chess-board-container {
+    width: 100%;
+  }
+
+  .board-wrapper {
+    width: 100%;
+  }
+}
