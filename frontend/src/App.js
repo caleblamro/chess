@@ -46,6 +46,8 @@ function App() {
   }, []);
 
   const handleSocketMessage = (data) => {
+    console.log('Socket message received:', data);
+    
     switch (data.type) {
       case 'game_created':
         setCurrentGame(data.game);
@@ -69,10 +71,11 @@ function App() {
         break;
 
       case 'player_joined':
-        if (currentGame && currentGame.gameId === data.gameId) {
-          setCurrentGame(data.game);
-          showNotification('Opponent joined the game!');
-        }
+        console.log('Player joined event received:', data);
+        // Always set current game if joining successful
+        setCurrentGame(data.game);
+        setPlayerColor('black'); // Joiner plays as black
+        showNotification('Successfully joined the game!');
         break;
 
       case 'move_made':
@@ -118,11 +121,13 @@ function App() {
 
   const joinGame = (gameId) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
+      console.log('Joining game:', gameId);
       socket.send(JSON.stringify({
         type: 'join_game',
         gameId
       }));
-      setPlayerColor('black'); // Joiner plays as black
+      // Don't set player color yet - wait for confirmation
+      showNotification('Joining game...', 'info');
     } else {
       showNotification('Socket connection not available', 'error');
     }

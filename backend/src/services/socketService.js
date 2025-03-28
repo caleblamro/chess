@@ -120,16 +120,22 @@ async function handleCreateGame(clientId) {
 
 async function handleJoinGame(clientId, gameId) {
   try {
+    console.log(`Client ${clientId} attempting to join game ${gameId}`);
+    
     const game = await Game.findOne({ gameId });
     
     if (!game) {
+      console.log(`Game ${gameId} not found`);
       return sendToClient(clientId, {
         type: 'error',
         message: 'Game not found'
       });
     }
     
+    console.log(`Game ${gameId} found with status: ${game.status}`);
+    
     if (game.status !== 'waiting_for_opponent') {
+      console.log(`Game ${gameId} already has both players (status: ${game.status})`);
       return sendToClient(clientId, {
         type: 'error',
         message: 'Game already has both players'
@@ -138,13 +144,23 @@ async function handleJoinGame(clientId, gameId) {
     
     // Subscribe the client to the game
     subscribeToGame(clientId, gameId);
+    console.log(`Client ${clientId} subscribed to game ${gameId}`);
     
     // Update game status
     game.status = 'in_progress';
     await game.save();
+    console.log(`Game ${gameId} status updated to in_progress`);
     
-    // Notify all subscribers to this game
-    notifyGameSubscribers(gameId, {
+    // Send direct confirmation to the joining client first
+    sendToClient(clientId, {
+      type: 'player_joined',
+      gameId,
+      game
+    });
+    console.log(`Join confirmation sent to client ${clientId}`);
+    
+    // Then notify other subscribers
+    notifyOtherSubscribers(gameId, clientId, {
       type: 'player_joined',
       gameId,
       game
@@ -319,8 +335,25 @@ function notifyGameSubscribers(gameId, data) {
   const subscribers = gameSubscriptions.get(gameId);
   
   if (subscribers) {
+    console.log(`Notifying ${subscribers.size} subscribers for game ${gameId}`);
     for (const clientId of subscribers) {
       sendToClient(clientId, data);
+    }
+  } else {
+    console.log(`No subscribers found for game ${gameId}`);
+  }
+}
+
+// New function to notify all subscribers except the specified client
+function notifyOtherSubscribers(gameId, excludeClientId, data) {
+  const subscribers = gameSubscriptions.get(gameId);
+  
+  if (subscribers) {
+    console.log(`Notifying other ${subscribers.size - 1} subscribers for game ${gameId} (excluding ${excludeClientId})`);
+    for (const clientId of subscribers) {
+      if (clientId !== excludeClientId) {
+        sendToClient(clientId, data);
+      }
     }
   }
 }
@@ -339,7 +372,18 @@ function sendToClient(clientId, data) {
   const clientData = connections.get(clientId);
   
   if (clientData && clientData.connection.socket.readyState === 1) {
-    clientData.connection.socket.send(JSON.stringify(data));
+    try {
+      console.log(`Sending message to client ${clientId}:`, data.type);
+      clientData.connection.socket.send(JSON.stringify(data));
+    } catch (error) {
+      console.error(`Error sending message to client ${clientId}:`, error);
+    }
+  } else {
+    if (!clientData) {
+      console.error(`Client ${clientId} not found in connections`);
+    } else if (clientData.connection.socket.readyState !== 1) {
+      console.error(`Client ${clientId} socket not in OPEN state (state: ${clientData.connection.socket.readyState})`);
+    }
   }
 }
 

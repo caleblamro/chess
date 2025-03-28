@@ -48,7 +48,10 @@ function Lobby({ games, onCreateGame, onJoinGame, connectionStatus }) {
                 </div>
                 <button
                   className="join-game-btn"
-                  onClick={() => onJoinGame(game.gameId)}
+                  onClick={() => {
+                    console.log('Join button clicked for game:', game.gameId);
+                    onJoinGame(game.gameId);
+                  }}
                 >
                   Join Game
                 </button>
