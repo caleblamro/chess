@@ -3,7 +3,7 @@
  */
 
 // Get the WebSocket URL from environment variables or use default
-const WS_URL = 'wss://cserver.caleblamoreaux.com/ws';
+const WS_URL = process.env.REACT_APP_WS_URL;
 
 /**
  * Connect to the WebSocket server
