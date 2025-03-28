@@ -74,7 +74,6 @@ function App() {
         console.log('Player joined event received:', data);
         // Always set current game if joining successful
         setCurrentGame(data.game);
-        setPlayerColor('black'); // Joiner plays as black
         showNotification('Successfully joined the game!');
         break;
 
@@ -128,6 +127,7 @@ function App() {
       }));
       // Don't set player color yet - wait for confirmation
       showNotification('Joining game...', 'info');
+      setPlayerColor('black');
     } else {
       showNotification('Socket connection not available', 'error');
     }
